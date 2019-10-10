@@ -660,3 +660,8 @@ int
 vipsimage_remosaic (VipsImage *in, VipsImage **out, const char *old_str, const char *new_str) {
     return vips_remosaic(in, out, old_str, new_str, NULL);
 }
+
+int
+vipsimage_copy (VipsImage *in, VipsImage **out) {
+    return vips_copy(in, out, NULL);
+}

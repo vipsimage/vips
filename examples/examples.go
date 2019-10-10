@@ -340,19 +340,19 @@ func testFull() {
 
 	// img.DrawSmudge(100, 100, 100, 100)
 
-	img.FormatSizeof()
-
-	err = img.Save2file("save.jpeg")
-	if err != nil {
-		panic(err)
-	}
+	// img.FormatSizeof()
+	//
+	// err = img.Save2file("save.jpeg")
+	// if err != nil {
+	// 	panic(err)
+	// }
 }
 
 func main() {
-	img := vips.NewFromFile("./examples/images/photo.jpg")
-	wm := vips.NewFromFile("./examples/images/watermark.png")
+	img := vips.NewFromFile("./images/Landscape_2.jpg")
+	wm := vips.NewFromFile("./images/away.webp")
 
-	err = wm.ThumbnailImage(200)
+	err := wm.ThumbnailImage(200)
 	if err != nil {
 		panic(err)
 	}

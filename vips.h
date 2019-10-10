@@ -21,6 +21,7 @@ int vipsimage_subsample (VipsImage *in, VipsImage **out, int xfac, int yfac);
 int vipsimage_zoom (VipsImage *in, VipsImage **out, int xfac, int yfac);
 int vipsimage_wrap (VipsImage *in, VipsImage **out);
 int vipsimage_extract_band (VipsImage *in, VipsImage **out, int band);
+int vipsimage_copy (VipsImage *in, VipsImage **out);
 
 /* VipsForeignSave */
 int vipsimage_vipsload (const char *filename, VipsImage **out);

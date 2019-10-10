@@ -1,4 +1,3 @@
-
 # Go Vips  
 Go Vips is a go bind to libvips C API.  
 
@@ -21,20 +20,11 @@ export CGO_CFLAGS_ALLOW='-Xpreprocessor'
 
 ## examples
 ```golang
-package main
-
-import (
-	"fmt"
-
-	"github.com/vipsimage/vips"
-)
-
-
 func main() {
-	img := vips.NewFromFile("./examples/images/photo.jpg")
-	wm := vips.NewFromFile("./examples/images/watermark.png")
+	img := vips.NewFromFile("./images/Landscape_2.jpg")
+	wm := vips.NewFromFile("./images/away.webp")
 
-	err = wm.ThumbnailImage(200)
+	err := wm.ThumbnailImage(200)
 	if err != nil {
 		panic(err)
 	}
@@ -65,7 +55,8 @@ func main() {
 ```
 
 ## Features  
-### conversion  
+### conversion 
+- Copy: Copy an image, optionally modifying the header.
 - Replicate: repeats an image many times.  
 - Gravity: place in within an image of size width by height at a certain gravity.  
 - Composite2: composite overlay on top of base with mode .  

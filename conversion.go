@@ -270,3 +270,15 @@ func (th *Image) SmartCrop(width, height int) (err error) {
 
 	return
 }
+
+// Copy an image, optionally modifying the header.
+// VIPS copies images by copying pointers, so this operation is instant, even for very large images.
+func (th *Image) Copy() (out *Image, err error) {
+	out = New()
+
+	if C.vipsimage_copy(th.vipsImage, &out.vipsImage) != 0 {
+		err = Error()
+		return
+	}
+	return
+}
