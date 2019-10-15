@@ -5,6 +5,9 @@ package vips
 #include "vips.h"
 */
 import "C"
+import (
+	"image"
+)
 
 // CompassDirection direction on a compass.
 type CompassDirection int
@@ -141,9 +144,10 @@ func (th *Image) Composite() {
 
 }
 
-// Composite2 composite overlay on top of base with mode . See Composite.
-func (th *Image) Composite2(overlay *Image, mode BlendMode) (err error) {
-	if C.vipsimage_composite2(th.vipsImage, overlay.vipsImage, &th.vipsImage, C.VipsBlendMode(mode)) != 0 {
+// Composite2 composite overlay on top of base with mode. See Composite.
+func (th *Image) Composite2(overlay *Image, mode BlendMode, point image.Point) (err error) {
+	if C.vipsimage_composite2(th.vipsImage, overlay.vipsImage, &th.vipsImage, C.VipsBlendMode(mode),
+		C.int(point.X), C.int(point.Y)) != 0 {
 		return Error()
 	}
 

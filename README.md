@@ -43,9 +43,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	img.Replicate(10, 10)
+	img.Replicate(2, 2)
 
 	fmt.Println(img.Height(), img.Width())
+
+	imgCopy, err := img.Copy()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(imgCopy.Width())
 
 	err = img.Save2file("out.png")
 	if err != nil {

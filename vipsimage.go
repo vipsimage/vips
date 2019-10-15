@@ -6,6 +6,7 @@ package vips
 */
 import "C"
 import (
+	"os"
 	"unsafe"
 )
 
@@ -30,11 +31,17 @@ func NewMemory() *Image {
 // including VIPS, TIFF, PNG, JPEG, FITS,
 // Matlab, OpenEXR, CSV, WebP, Radiance,
 // RAW, PPM and others.
-func NewFromFile(filename string) *Image {
+func NewFromFile(filename string) (out *Image, err error) {
+	_, err = os.Stat(filename)
+	if err != nil {
+		return
+	}
+
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
 
-	return &Image{vipsImage: C.vipsimage_image_new_from_file(name)}
+	out = &Image{vipsImage: C.vipsimage_image_new_from_file(name)}
+	return
 }
 
 // NewFromBuffer loads an image from the formatted area of memory buf.

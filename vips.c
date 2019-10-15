@@ -2,6 +2,12 @@
 
 #include <stdio.h>
 
+/* vips */
+void
+vipsimage_free(VipsImage *in) {
+    if (G_IS_OBJECT(in)) g_clear_object(&in);
+}
+
 /* VipsImage */
 VipsImage *
 vipsimage_image_new_from_file (const char *name) {
@@ -25,8 +31,8 @@ vipsimage_gravity (VipsImage *in, VipsImage **out, VipsCompassDirection directio
 }
 
 int
-vipsimage_composite2 (VipsImage *base, VipsImage *overlay, VipsImage **out, VipsBlendMode mode) {
-    return vips_composite2(base, overlay, out, mode, NULL);
+vipsimage_composite2 (VipsImage *base, VipsImage *overlay, VipsImage **out, VipsBlendMode mode, int x, int y) {
+    return vips_composite2(base, overlay, out, mode, "x", x, "y", y, NULL);
 }
 
 int

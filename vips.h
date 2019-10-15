@@ -1,5 +1,6 @@
 #include <vips/vips.h>
 /* vips */
+void vipsimage_free(VipsImage *in);
 
 /* VipsImage */
 VipsImage *vipsimage_image_new_from_file (const char *name);
@@ -8,7 +9,7 @@ VipsImage *vipsimage_image_new_from_buffer (const void *buf, size_t len, const c
 /* conversion */
 int vipsimage_replicate (VipsImage *in, VipsImage **out, int across, int down);
 int vipsimage_gravity (VipsImage *in, VipsImage **out, VipsCompassDirection direction, int width, int height);
-int vipsimage_composite2 (VipsImage *base, VipsImage *overlay, VipsImage **out, VipsBlendMode mode1);
+int vipsimage_composite2 (VipsImage *base, VipsImage *overlay, VipsImage **out, VipsBlendMode mode1, int x, int y);
 int vipsimage_autorot (VipsImage *in, VipsImage **out);
 int vipsimage_embed (VipsImage *in, VipsImage **out, int x, int y, int width, int height);
 int vipsimage_extract_area (VipsImage *in, VipsImage **out, int left, int top, int width, int height);
