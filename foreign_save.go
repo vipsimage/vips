@@ -6,6 +6,7 @@ package vips
 */
 import "C"
 import (
+	"math"
 	"unsafe"
 )
 
@@ -116,7 +117,10 @@ func (th *Image) JPEGSaveBuffer() (buf []byte, size int, err error) {
 	}
 
 	size = int(si)
-	buf = C.GoBytes(ptr, C.int(si))
+	// buf = C.GoBytes(ptr, C.int(si))
+	// without copying the original data
+	// https://github.com/golang/go/wiki/cgo#turning-c-arrays-into-go-slices
+	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
 
 	return
 }
@@ -181,7 +185,7 @@ func (th *Image) WEBPSaveBuffer() (buf []byte, size int, err error) {
 	}
 
 	size = int(si)
-	buf = C.GoBytes(ptr, C.int(si))
+	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
 
 	return
 }
@@ -249,7 +253,7 @@ func (th *Image) TIFFSaveBuffer() (buf []byte, size int, err error) {
 	}
 
 	size = int(si)
-	buf = C.GoBytes(ptr, C.int(si))
+	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
 
 	return
 }
@@ -464,7 +468,7 @@ func (th *Image) MagickSaveBuffer() (buf []byte, size int, err error) {
 	}
 
 	size = int(si)
-	buf = C.GoBytes(ptr, C.int(si))
+	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
 
 	return
 }
@@ -522,7 +526,7 @@ func (th *Image) PNGSaveBuffer() (buf []byte, size int, err error) {
 	}
 
 	size = int(si)
-	buf = C.GoBytes(ptr, C.int(si))
+	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
 
 	return
 }
@@ -607,7 +611,7 @@ func (th *Image) RADSaveBuffer() (buf []byte, size int, err error) {
 	}
 
 	size = int(si)
-	buf = C.GoBytes(ptr, C.int(si))
+	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
 
 	return
 }
@@ -747,7 +751,7 @@ func (th *Image) HEIFSaveBuffer() (buf []byte, size int, err error) {
 	}
 
 	size = int(si)
-	buf = C.GoBytes(ptr, C.int(si))
+	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
 
 	return
 }
