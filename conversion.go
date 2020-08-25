@@ -154,12 +154,6 @@ func (th *Image) Composite2(overlay *Image, mode BlendMode, point image.Point) (
 	return
 }
 
-// GetAngle examine the metadata on im and return the VipsAngle
-// to rotate by to turn the image upright.
-func (th *Image) GetAngle() Angle {
-	return Angle(int(C.vips_autorot_get_angle(th.vipsImage)))
-}
-
 // AutoRot look at the image metadata and rotate the image to make it upright.
 // Note:
 //
