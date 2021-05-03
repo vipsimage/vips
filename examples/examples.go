@@ -7,8 +7,8 @@ import (
 )
 
 func testMerge() {
-	img1 := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_2.jpg")
-	img2 := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_6.jpg")
+	img1, _ := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_2.jpg")
+	img2, _ := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_6.jpg")
 
 	err := img2.AutoRot()
 	if err != nil {
@@ -26,8 +26,8 @@ func testMerge() {
 	}
 }
 func testMosaic() {
-	img1 := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_2.jpg")
-	img2 := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_6.jpg")
+	img1, _ := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_2.jpg")
+	img2, _ := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_6.jpg")
 
 	err := img2.AutoRot()
 	if err != nil {
@@ -46,8 +46,8 @@ func testMosaic() {
 	}
 }
 func testMosaic1() {
-	img1 := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_2.jpg")
-	img2 := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_6.jpg")
+	img1, _ := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_2.jpg")
+	img2, _ := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_6.jpg")
 
 	err := img2.AutoRot()
 	if err != nil {
@@ -65,8 +65,8 @@ func testMosaic1() {
 	}
 }
 func testGlobalBalance() {
-	img1 := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/photo.jpg")
-	img2 := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_6.jpg")
+	img1, _ := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/photo.jpg")
+	img2, _ := vips.NewFromFile("/Users/mo/Go/vipsimage/vips/examples/images/Landscape_6.jpg")
 
 	err := img2.AutoRot()
 	if err != nil {
@@ -349,8 +349,8 @@ func testFull() {
 }
 
 func main() {
-	img := vips.NewFromFile("./images/Landscape_2.jpg")
-	wm := vips.NewFromFile("./images/away.webp")
+	img, _ := vips.NewFromFile("./images/Landscape_2.jpg")
+	wm, _ := vips.NewFromFile("./images/away.webp")
 
 	err := wm.ThumbnailImage(200)
 	if err != nil {

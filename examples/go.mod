@@ -1,6 +1,6 @@
 module examples
 
-go 1.13
+go 1.16
 
 replace github.com/vipsimage/vips => ../../vips/
 
