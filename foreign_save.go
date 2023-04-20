@@ -15,26 +15,29 @@ import (
 func ForeignFindLoad(filename string) string {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	return C.GoString(C.vips_foreign_find_load(name))
 }
 
 // ForeignFindLoadBuffer searches for an operation you could use to load a memory buffer.
 func ForeignFindLoadBuffer(data []byte) string {
-	return C.GoString(C.vips_foreign_find_load_buffer(unsafe.Pointer(&data[0]), C.ulong(len(data))))
+	p := unsafe.Pointer(&data[0])
+	defer C.free(p)
+	
+	return C.GoString(C.vips_foreign_find_load_buffer(p, C.ulong(len(data))))
 }
 
 // Load read in a vips image.
 func Load(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
 	if C.vipsimage_vipsload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -42,11 +45,11 @@ func Load(filename string) (out *Image, err error) {
 func (th *Image) Save2file(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_vipssave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -56,12 +59,12 @@ func OpenSlideLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
 	out = New()
-
+	
 	if C.vipsimage_openslideload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -70,39 +73,40 @@ func OpenSlideLoad(filename string) (out *Image, err error) {
 func JPEGLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_jpegload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
 // JPEGLoadBuffer read a JPEG-formatted memory block into a VIPS image.
 // Exactly as JPEGLoad, but read from a memory buffer.
 func JPEGLoadBuffer(buf []byte) (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_jpegload_buffer(unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &out.vipsImage) != 0 {
+	var vipsImage *C.VipsImage
+	p := unsafe.Pointer(&buf[0])
+	
+	if C.vipsimage_jpegload_buffer(p, C.ulong(len(buf)), &vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(vipsImage), nil
 }
 
 // JPEGSave write a VIPS image to a file as JPEG.
 func (th *Image) JPEGSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_jpegsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -110,18 +114,18 @@ func (th *Image) JPEGSave(filename string) (err error) {
 func (th *Image) JPEGSaveBuffer() (buf []byte, size int, err error) {
 	var si C.ulong
 	var ptr unsafe.Pointer
-
+	
 	if C.vipsimage_jpegsave_buffer(th.vipsImage, &ptr, &si) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	size = int(si)
 	// buf = C.GoBytes(ptr, C.int(si))
 	// without copying the original data
 	// https://github.com/golang/go/wiki/cgo#turning-c-arrays-into-go-slices
 	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
-
+	
 	return
 }
 
@@ -130,47 +134,47 @@ func (th *Image) JPEGSaveMime() (err error) {
 	if C.vipsimage_jpegsave_mime(th.vipsImage) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
 // WEBPLoad read a WebP file into a VIPS image.
 func WEBPLoad(filename string) (out *Image, err error) {
+	var o *C.VipsImage
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
-	out = New()
-
-	if C.vipsimage_webpload(name, &out.vipsImage) != 0 {
+	
+	if C.vipsimage_webpload(name, &o) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(o), nil
 }
 
 // WEBPLoadBuffer read a WebP-formatted memory block into a VIPS image.
 // Exactly as WEBPLoad, but read from a memory buffer.
 func WEBPLoadBuffer(buf []byte) (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_webpload_buffer(unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &out.vipsImage) != 0 {
+	var image *C.VipsImage
+	p := unsafe.Pointer(&buf[0])
+	
+	if C.vipsimage_webpload_buffer(p, C.ulong(len(buf)), &image) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(image), nil
 }
 
 // WEBPSave write a VIPS image to a file as WEBP.
 func (th *Image) WEBPSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_webpsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -178,15 +182,16 @@ func (th *Image) WEBPSave(filename string) (err error) {
 func (th *Image) WEBPSaveBuffer() (buf []byte, size int, err error) {
 	var si C.ulong
 	var ptr unsafe.Pointer
-
+	defer C.free(ptr)
+	
 	if C.vipsimage_webpsave_buffer(th.vipsImage, &ptr, &si) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	size = int(si)
 	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
-
+	
 	return
 }
 
@@ -195,7 +200,7 @@ func (th *Image) WEBPSaveMime() (err error) {
 	if C.vipsimage_webpsave_mime(th.vipsImage) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -206,39 +211,40 @@ func (th *Image) WEBPSaveMime() (err error) {
 func TIFFLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_tiffload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
 // TIFFLoadBuffer read a TIFF-formatted memory block into a VIPS image.
 // Exactly as TIFFLoad, but read from a memory buffer.
 func TIFFLoadBuffer(buf []byte) (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_tiffload_buffer(unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &out.vipsImage) != 0 {
+	var image *C.VipsImage
+	p := unsafe.Pointer(&buf[0])
+	
+	if C.vipsimage_tiffload_buffer(p, C.ulong(len(buf)), &image) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(image), nil
 }
 
 // TIFFSave write a VIPS image to a file as TIFF.
 func (th *Image) TIFFSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_tiffsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -246,15 +252,15 @@ func (th *Image) TIFFSave(filename string) (err error) {
 func (th *Image) TIFFSaveBuffer() (buf []byte, size int, err error) {
 	var si C.ulong
 	var ptr unsafe.Pointer
-
+	
 	if C.vipsimage_tiffsave_buffer(th.vipsImage, &ptr, &si) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	size = int(si)
 	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
-
+	
 	return
 }
 
@@ -262,14 +268,14 @@ func (th *Image) TIFFSaveBuffer() (buf []byte, size int, err error) {
 func OpenEXRLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_openexrload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -277,14 +283,14 @@ func OpenEXRLoad(filename string) (out *Image, err error) {
 func FITSLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_fitsload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -292,11 +298,11 @@ func FITSLoad(filename string) (out *Image, err error) {
 func (th *Image) FITSSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_fitssave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -304,32 +310,32 @@ func (th *Image) FITSSave(filename string) (err error) {
 // If filename is "fred.img", this will look for an image header called "fred.hdr"
 // and pixel data in "fred.img". You can also load "fred" or "fred.hdr".
 func AnalyzeLoad(filename string) (out *Image, err error) {
+	var image *C.VipsImage
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-	out = New()
-
-	if C.vipsimage_analyzeload(name, &out.vipsImage) != 0 {
+	
+	if C.vipsimage_analyzeload(name, &image) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(image), nil
 }
 
 // RawLoad mmaps the file, setting up out so that access to that image will read from the file.
 func RawLoad(filename string, width, height, bands int) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_rawload(name, &out.vipsImage,
 		C.int(width), C.int(height), C.int(bands)) != 0 {
-
+		
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -337,11 +343,11 @@ func RawLoad(filename string, width, height, bands int) (out *Image, err error) 
 func (th *Image) RawSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_rawsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -352,14 +358,14 @@ func (th *Image) RawSave(filename string) (err error) {
 func CSVLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_csvload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -367,11 +373,11 @@ func CSVLoad(filename string) (out *Image, err error) {
 func (th *Image) CSVSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_csvsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -379,14 +385,14 @@ func (th *Image) CSVSave(filename string) (err error) {
 func MatrixLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_matrixload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -394,11 +400,11 @@ func MatrixLoad(filename string) (out *Image, err error) {
 func (th *Image) MatrixSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_matrixsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -408,7 +414,7 @@ func (th *Image) MatrixPrint() (err error) {
 	if C.vipsimage_matrixprint(th.vipsImage) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -421,39 +427,40 @@ func (th *Image) MatrixPrint() (err error) {
 func MagickLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_pngload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
 // MagickLoadBuffer read a Magick-formatted memory block into a VIPS image.
 // Exactly as MagickLoad, but read from a memory buffer.
 func MagickLoadBuffer(buf []byte) (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_pngload_buffer(unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &out.vipsImage) != 0 {
+	var image *C.VipsImage
+	p := unsafe.Pointer(&buf[0])
+	
+	if C.vipsimage_pngload_buffer(p, C.ulong(len(buf)), &image) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(image), nil
 }
 
 // MagickSave write a VIPS image to a file as Magick.
 func (th *Image) MagickSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_pngsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -461,15 +468,16 @@ func (th *Image) MagickSave(filename string) (err error) {
 func (th *Image) MagickSaveBuffer() (buf []byte, size int, err error) {
 	var si C.ulong
 	var ptr unsafe.Pointer
-
+	defer C.free(ptr)
+	
 	if C.vipsimage_pngsave_buffer(th.vipsImage, &ptr, &si) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	size = int(si)
 	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
-
+	
 	return
 }
 
@@ -479,39 +487,40 @@ func (th *Image) MagickSaveBuffer() (buf []byte, size int, err error) {
 func PNGLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_pngload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
 // PNGLoadBuffer read a PNG-formatted memory block into a VIPS image.
 // Exactly as PNGLoad, but read from a memory buffer.
 func PNGLoadBuffer(buf []byte) (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_pngload_buffer(unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &out.vipsImage) != 0 {
+	var image *C.VipsImage
+	p := unsafe.Pointer(&buf[0])
+	
+	if C.vipsimage_pngload_buffer(p, C.ulong(len(buf)), &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(image), nil
 }
 
 // PNGSave write a VIPS image to a file as PNG.
 func (th *Image) PNGSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_pngsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -519,15 +528,16 @@ func (th *Image) PNGSave(filename string) (err error) {
 func (th *Image) PNGSaveBuffer() (buf []byte, size int, err error) {
 	var si C.ulong
 	var ptr unsafe.Pointer
-
+	defer C.free(ptr)
+	
 	if C.vipsimage_pngsave_buffer(th.vipsImage, &ptr, &si) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	size = int(si)
 	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
-
+	
 	return
 }
 
@@ -535,14 +545,14 @@ func (th *Image) PNGSaveBuffer() (buf []byte, size int, err error) {
 func PPMLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_ppmload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -550,11 +560,11 @@ func PPMLoad(filename string) (out *Image, err error) {
 func (th *Image) PPMSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_ppmsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -562,14 +572,14 @@ func (th *Image) PPMSave(filename string) (err error) {
 func MatLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_matload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -577,14 +587,14 @@ func MatLoad(filename string) (out *Image, err error) {
 func RADLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_radload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -592,11 +602,11 @@ func RADLoad(filename string) (out *Image, err error) {
 func (th *Image) RADSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_radsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -604,15 +614,15 @@ func (th *Image) RADSave(filename string) (err error) {
 func (th *Image) RADSaveBuffer() (buf []byte, size int, err error) {
 	var si C.ulong
 	var ptr unsafe.Pointer
-
+	
 	if C.vipsimage_radsave_buffer(th.vipsImage, &ptr, &si) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	size = int(si)
 	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
-
+	
 	return
 }
 
@@ -620,123 +630,127 @@ func (th *Image) RADSaveBuffer() (buf []byte, size int, err error) {
 func PDFLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_pngload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
 // PDFLoadBuffer read a PDF-formatted memory block into a VIPS image.
 // Exactly as PDFLoad, but read from a memory buffer.
 func PDFLoadBuffer(buf []byte) (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_pngload_buffer(unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &out.vipsImage) != 0 {
+	var image *C.VipsImage
+	p := unsafe.Pointer(&buf[0])
+	
+	if C.vipsimage_pngload_buffer(p, C.ulong(len(buf)), &image) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(image), nil
 }
 
 // SVGLoad render a SVG file into a VIPS image. Rendering uses the librsvg library and should be fast.
 func SVGLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_pngload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
 // SVGLoadBuffer read a SVG-formatted memory block into a VIPS image.
 // Exactly as SVGLoad, but read from a memory buffer.
 func SVGLoadBuffer(buf []byte) (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_pngload_buffer(unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &out.vipsImage) != 0 {
+	var image *C.VipsImage
+	p := unsafe.Pointer(&buf[0])
+	
+	if C.vipsimage_pngload_buffer(p, C.ulong(len(buf)), &image) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(image), nil
 }
 
 // GIFLoad render a GIF file into a VIPS image. Rendering uses the librgif library and should be fast.
 func GIFLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_pngload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
 // GIFLoadBuffer read a GIF-formatted memory block into a VIPS image.
 // Exactly as GIFLoad, but read from a memory buffer.
 func GIFLoadBuffer(buf []byte) (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_pngload_buffer(unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &out.vipsImage) != 0 {
+	var image *C.VipsImage
+	p := unsafe.Pointer(&buf[0])
+	
+	if C.vipsimage_pngload_buffer(p, C.ulong(len(buf)), &image) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(image), nil
 }
 
 // HEIFLoad read a HEIF image file into a VIPS image.
 func HEIFLoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_heifload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
 // HEIFLoadBuffer read a HEIF-formatted memory block into a VIPS image.
 // Exactly as HEIFLoad, but read from a memory buffer.
 func HEIFLoadBuffer(buf []byte) (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_heifload_buffer(unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &out.vipsImage) != 0 {
+	var image *C.VipsImage
+	p := unsafe.Pointer(&buf[0])
+	
+	if C.vipsimage_heifload_buffer(p, C.ulong(len(buf)), &image) != 0 {
 		err = Error()
 		return
 	}
-
-	return
+	
+	return NewFromVipsImage(image), nil
 }
 
 // HEIFSave write a VIPS image to a file as HEIF.
 func (th *Image) HEIFSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_heifsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -744,15 +758,16 @@ func (th *Image) HEIFSave(filename string) (err error) {
 func (th *Image) HEIFSaveBuffer() (buf []byte, size int, err error) {
 	var si C.ulong
 	var ptr unsafe.Pointer
-
+	defer C.free(ptr)
+	
 	if C.vipsimage_heifsave_buffer(th.vipsImage, &ptr, &si) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	size = int(si)
 	buf = (*[math.MaxInt32]byte)(ptr)[:size:size]
-
+	
 	return
 }
 
@@ -760,14 +775,14 @@ func (th *Image) HEIFSaveBuffer() (buf []byte, size int, err error) {
 func NIFTILoad(filename string) (out *Image, err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	out = New()
-
+	
 	if C.vipsimage_niftiload(name, &out.vipsImage) != 0 {
 		err = Error()
 		return
 	}
-
+	
 	return
 }
 
@@ -775,11 +790,11 @@ func NIFTILoad(filename string) (out *Image, err error) {
 func (th *Image) NIFTISave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_niftisave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }
 
@@ -788,10 +803,10 @@ func (th *Image) NIFTISave(filename string) (err error) {
 func (th *Image) DZSave(filename string) (err error) {
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
+	
 	if C.vipsimage_dzsave(th.vipsImage, name) != 0 {
 		return Error()
 	}
-
+	
 	return
 }

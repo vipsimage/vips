@@ -121,21 +121,27 @@ const (
 // across: repeat input this many times across
 // down: repeat input this many times down
 func (th *Image) Replicate(across, down int) (err error) {
-	if C.vipsimage_replicate(th.vipsImage, &th.vipsImage, C.int(across), C.int(down)) != 0 {
+	var vipsImage *C.VipsImage
+	if C.vipsimage_replicate(th.vipsImage, &vipsImage, C.int(across), C.int(down)) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // Gravity place in within an image of size width by height at a certain gravity.
 func (th *Image) Gravity(direction CompassDirection, width, height int) (err error) {
 	vcd := C.VipsCompassDirection(direction)
-
-	if C.vipsimage_gravity(th.vipsImage, &th.vipsImage, vcd, C.int(width), C.int(height)) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_gravity(th.vipsImage, &vipsImage, vcd, C.int(width), C.int(height)) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
@@ -146,11 +152,15 @@ func (th *Image) Composite() {
 
 // Composite2 composite overlay on top of base with mode. See Composite.
 func (th *Image) Composite2(overlay *Image, mode BlendMode, point image.Point) (err error) {
-	if C.vipsimage_composite2(th.vipsImage, overlay.vipsImage, &th.vipsImage, C.VipsBlendMode(mode),
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_composite2(th.vipsImage, overlay.vipsImage, &vipsImage, C.VipsBlendMode(mode),
 		C.int(point.X), C.int(point.Y)) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
@@ -161,52 +171,78 @@ func (th *Image) Composite2(overlay *Image, mode BlendMode, point image.Point) (
 // mirror modes. If the image is using one of these mirror modes, the image is not
 // rotated and the VIPS_META_ORIENTATION tag is not removed.
 func (th *Image) AutoRot() (err error) {
-	if C.vipsimage_autorot(th.vipsImage, &th.vipsImage) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_autorot(th.vipsImage, &vipsImage) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // Embed *Image within an image of size width by height at position x , y .
 func (th *Image) Embed(x, y, width, height int) (err error) {
-	if C.vipsimage_embed(th.vipsImage, &th.vipsImage, C.int(x), C.int(y), C.int(width), C.int(height)) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_embed(th.vipsImage, &vipsImage, C.int(x), C.int(y), C.int(width), C.int(height)) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // ExtractArea extract an area from an image. The area must fit within *Image.
 func (th *Image) ExtractArea(left, top, width, height int) (err error) {
-	if C.vipsimage_extract_area(th.vipsImage, &th.vipsImage, C.int(left), C.int(top), C.int(width), C.int(height)) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_extract_area(th.vipsImage, &vipsImage, C.int(left), C.int(top), C.int(width), C.int(height)) != 0 {
 		return Error()
 	}
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // Crop a synonym for ExtractArea.
 func (th *Image) Crop(left, top, width, height int) (err error) {
-	if C.vipsimage_crop(th.vipsImage, &th.vipsImage, C.int(left), C.int(top), C.int(width), C.int(height)) != 0 {
+	var vipsImage *C.VipsImage
+	if C.vipsimage_crop(th.vipsImage, &vipsImage, C.int(left), C.int(top), C.int(width), C.int(height)) != 0 {
 		return Error()
 	}
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // Flip an image left-right or up-down.
 func (th *Image) Flip(direction Direction) (err error) {
-	if C.vipsimage_flip(th.vipsImage, &th.vipsImage, C.VipsDirection(direction)) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_flip(th.vipsImage, &vipsImage, C.VipsDirection(direction)) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // Grid chop a tall thin image up into a set of tiles, lay the tiles out in a grid.
 func (th *Image) Grid(tileHeight, across, down int) (err error) {
-	if C.vipsimage_grid(th.vipsImage, &th.vipsImage, C.int(tileHeight), C.int(across), C.int(down)) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_grid(th.vipsImage, &vipsImage, C.int(tileHeight), C.int(across), C.int(down)) != 0 {
 		return
 	}
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
@@ -214,28 +250,40 @@ func (th *Image) Grid(tileHeight, across, down int) (err error) {
 // then return the image as unsigned 8-bit, scaled so that
 // the maximum value is 255 and the minimum is zero.
 func (th *Image) Scale() (err error) {
-	if C.vipsimage_scale(th.vipsImage, &th.vipsImage) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_scale(th.vipsImage, &vipsImage) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // SubSample an image by an integer fraction. This is fast, nearest-neighbour shrink.
 func (th *Image) SubSample(xFac, yFac int) (err error) {
-	if C.vipsimage_subsample(th.vipsImage, &th.vipsImage, C.int(xFac), C.int(yFac)) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_subsample(th.vipsImage, &vipsImage, C.int(xFac), C.int(yFac)) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // Zoom an image by repeating pixels. This is fast nearest-neighbour zoom.
 func (th *Image) Zoom(xFac, yFac int) (err error) {
-	if C.vipsimage_zoom(th.vipsImage, &th.vipsImage, C.int(xFac), C.int(yFac)) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_zoom(th.vipsImage, &vipsImage, C.int(xFac), C.int(yFac)) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
@@ -243,40 +291,52 @@ func (th *Image) Zoom(xFac, yFac int) (err error) {
 // the pixel that was at 0, 0 is now at x , y . If x and y
 // are not set, they default to the centre of the image.
 func (th *Image) Wrap() (err error) {
-	if C.vipsimage_wrap(th.vipsImage, &th.vipsImage) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_wrap(th.vipsImage, &vipsImage) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // ExtractBand extract a band or bands from an image.
 // Extracting out of range is an error.
 func (th *Image) ExtractBand(band int) (err error) {
-	if C.vipsimage_extract_band(th.vipsImage, &th.vipsImage, C.int(band)) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_extract_band(th.vipsImage, &vipsImage, C.int(band)) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // SmartCrop crop an image down to a specified width and height by removing boring parts.
 func (th *Image) SmartCrop(width, height int) (err error) {
-	if C.vipsimage_smartcrop(th.vipsImage, &th.vipsImage, C.int(width), C.int(height)) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_smartcrop(th.vipsImage, &vipsImage, C.int(width), C.int(height)) != 0 {
 		return Error()
 	}
-
+	
+	C.g_object_unref(C.gpointer(th.vipsImage))
+	th.vipsImage = vipsImage
 	return
 }
 
 // Copy an image, optionally modifying the header.
 // VIPS copies images by copying pointers, so this operation is instant, even for very large images.
 func (th *Image) Copy() (out *Image, err error) {
-	out = New()
-
-	if C.vipsimage_copy(th.vipsImage, &out.vipsImage) != 0 {
+	var vipsImage *C.VipsImage
+	
+	if C.vipsimage_copy(th.vipsImage, &vipsImage) != 0 {
 		err = Error()
 		return
 	}
-	return
+	return NewFromVipsImage(vipsImage), nil
 }

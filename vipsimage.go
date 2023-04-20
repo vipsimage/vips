@@ -15,15 +15,20 @@ type Image struct {
 	vipsImage *C.VipsImage
 }
 
+func NewFromVipsImage(vipsImage *C.VipsImage) *Image {
+	return &Image{vipsImage}
+}
+
 // New empty VipsImage
 func New() *Image {
-	return &Image{vipsImage: C.vips_image_new()}
+	// NewFromVipsImage(C.vips_image_new())
+	return &Image{}
 }
 
 // NewMemory creates a new VipsImage.
 // when written to, will create a memory image.
 func NewMemory() *Image {
-	return &Image{C.vips_image_new_memory()}
+	return NewFromVipsImage(C.vips_image_new_memory())
 }
 
 // NewFromFile opens filename for reading.
@@ -36,11 +41,11 @@ func NewFromFile(filename string) (out *Image, err error) {
 	if err != nil {
 		return
 	}
-
+	
 	var name *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(name))
-
-	out = &Image{vipsImage: C.vipsimage_image_new_from_file(name)}
+	
+	out = NewFromVipsImage(C.vipsimage_image_new_from_file(name))
 	return
 }
 
@@ -48,12 +53,13 @@ func NewFromFile(filename string) (out *Image, err error) {
 func NewFromBuffer(buf []byte, optionString string) *Image {
 	var oName *C.char = C.CString(optionString)
 	defer C.free(unsafe.Pointer(oName))
-
-	return &Image{
-		vipsImage: C.vipsimage_image_new_from_buffer(
-			unsafe.Pointer(&buf[0]), C.ulong(len(buf)), oName,
-		),
-	}
+	
+	p := unsafe.Pointer(&buf[0])
+	image := NewFromVipsImage(C.vipsimage_image_new_from_buffer(
+		p, C.ulong(len(buf)), oName,
+	))
+	
+	return image
 }
 
 // Height return image height
